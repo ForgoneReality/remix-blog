@@ -35,12 +35,12 @@
 
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { redirect, json } from "@remix-run/node";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData, useParams } from "@remix-run/react";
 import { marked } from "marked";
 
 
 import invariant from "tiny-invariant";
-import { updatePost, getPost, Post} from "~/models/post.server";
+import { updatePost, getPost, Post, deletePost} from "~/models/post.server";
 
 
 type LoaderData = { post: Post; html: string };
@@ -100,17 +100,32 @@ export const action: ActionFunction = async ({
 
   const origSlug = params.slug;
 
-  await updatePost({ title, slug, markdown }, origSlug);
+  invariant(
+    typeof origSlug === "string",
+    "Should never see this"
+  );
 
+  await updatePost({ title, slug, markdown }, origSlug);
+  console.log("?!")
   return redirect("/posts/admin");
 };
+
+async function handleDelete(slug: string){
+  console.log("1");
+  await deletePost(slug);
+  console.log("2");
+
+  redirect("/posts/admin");
+  console.log("3");
+}
 
 const inputClassName = `w-full rounded border border-gray-500 px-2 py-1 text-lg`;
 
 export default function EditPost() {
   const {post, html} = useLoaderData();
   const errors = useActionData();
-
+  const params = useParams();
+  console.log(params);
   return (
     <Form method="post">
       <p>
@@ -149,7 +164,17 @@ export default function EditPost() {
           className={`${inputClassName} font-mono`}
         />
       </p>
-      <p className="text-right">
+      <p className="flex justify-end gap-x-1">
+        <button onClick={(e) => {
+          e.preventDefault();
+          console.log("???")
+          if(params.slug !== undefined)
+          {
+            handleDelete(params.slug);
+          }
+        }} className="rounded bg-red-500 py-2 px-4 text-white hover:bg-red-600 focus:bg-red-400 disabled:bg-red-300">
+          Delete Post
+        </button>
         <button
           type="submit"
           className="rounded bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400 disabled:bg-blue-300"
