@@ -16,3 +16,7 @@ export async function getPost(slug: string) {
 export async function createPost(post) {
   return prisma.post.create({ data: post });
 }
+
+export async function updatePost(post, origSlug: string) {
+  return prisma.post.update({ where: {slug: origSlug}, data: post });
+}
